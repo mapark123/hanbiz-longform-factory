@@ -43,6 +43,6 @@ cp -r _틀 롱폼_새영상이름            # 새 영상 프로젝트
 
 ## 저작권
 
-한비즈마케팅 내부·프리미엄 수강생 전용. 주소를 받은 사람만 씁니다. 밖으로 퍼뜨리지 마세요.
+공개 저장소입니다. 누구나 열어 볼 수 있고, 저작권은 한비즈마케팅에 있습니다.
 
-글꼴 프리텐다드는 SIL Open Font License 1.1(재배포 가능) — https://github.com/orioncactus/pretendard
+글꼴 프리텐다드는 SIL Open Font License 1.1(재배포 가능) — https://github.com/orioncactus/pretendard · 원문 `_공용/글꼴/LICENSE.txt`

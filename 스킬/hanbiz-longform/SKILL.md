@@ -5,7 +5,7 @@ description: 한비즈 롱폼 영상 공장 — 대표(또는 수강생)가 찍�
 
 # 한비즈 롱폼 영상 공장
 
-저장소: https://github.com/mapark123/hanbiz-longform-factory (비공개 · 주소 받은 사람만)
+저장소: https://github.com/mapark123/hanbiz-longform-factory (공개)
 
 ## 시작 전 반드시 읽는다
 1. 저장소 `기준/01_작업순서.md` — 단계·명령·각 단계에서 대표에게 보여 줄 것
