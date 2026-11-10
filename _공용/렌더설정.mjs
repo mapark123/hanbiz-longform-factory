@@ -36,14 +36,18 @@ export async function 브라우저열기(chromium, 추가옵션 = {}) {
 // 찍는 한 장의 화질. PNG 는 6배 느린데 화질 차이가 거의 없어 JPEG 100 을 쓴다.
 export const JPEG화질 = 100;
 
+const 코덱됨 = (코덱) => spawnSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=256x256:d=0.1:r=5', '-c:v', 코덱, '-f', 'null', '-']).status === 0;
 let NVENC됨;
 function NVENC확인() {
   if (process.env.렌더CPU === '1') return false; // 문제가 생겼을 때 CPU 로 강제하는 스위치
-  if (NVENC됨 === undefined) {
-    const r = spawnSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=256x256:d=0.1:r=5', '-c:v', 'h264_nvenc', '-f', 'null', '-']);
-    NVENC됨 = r.status === 0;
-  }
+  if (NVENC됨 === undefined) NVENC됨 = 코덱됨('h264_nvenc');
   return NVENC됨;
+}
+let AMF됨;
+function AMF확인() {
+  if (process.env.렌더CPU === '1') return false;
+  if (AMF됨 === undefined) AMF됨 = 코덱됨('h264_amf');
+  return AMF됨;
 }
 
 // 색 표시까지 표준(bt709)으로 맞춘다. 전에는 PC 범위·옛 표준(bt601)으로 나가고 있었다.
@@ -57,6 +61,10 @@ export function 영상옵션() {
     return ['-c:v', 'h264_nvenc', '-preset', 'p7', '-tune', 'hq', '-rc', 'vbr', '-cq', '18', '-b:v', '0',
       '-multipass', 'fullres', '-rc-lookahead', '32', '-spatial-aq', '1', '-temporal-aq', '1', '-aq-strength', '8',
       '-bf', '3', '-b_ref_mode', 'middle', ...색옵션];
+  }
+  if (AMF확인()) {
+    console.log('[묶기] GPU · AMF h264 quality cqp16');
+    return ['-c:v', 'h264_amf', '-usage', 'transcoding', '-quality', 'quality', '-rc', 'cqp', '-qp_i', '16', '-qp_p', '16', '-qp_b', '16', ...색옵션];
   }
   console.log('[묶기] CPU · x264 slow crf16');
   // 10/19 렌더 중 PC 가 꺼진 일이 있어 CPU 는 4스레드로 묶는다 · 풀려면 환경변수 렌더스레드=0

@@ -8,7 +8,7 @@ import os, sys
 _p = os.path.abspath(__file__)
 while not os.path.exists(os.path.join(_p, '_공용', '_귀.py')) and os.path.dirname(_p) != _p: _p = os.path.dirname(_p)
 sys.path.insert(0, os.path.join(_p, '_공용'))
-import 경로
+import 경로, 인코더
 설 = 경로.설정(__file__)
 
 
@@ -28,7 +28,11 @@ Image.fromarray((m * 255).astype(np.uint8)).save(f'{여기}/얼굴마스크4k.pn
 
 # 자막(11/7 대표: 문장 단위 두 줄 · 귀 높이 · 정가운데 · 특별한 곳만 빨강·노랑) — 자막/그림/NNNN.png(3840×300) 을 시각대로 이어 붙임
 import json
-줄 = json.load(open(f'{여기}/자막/줄.json', encoding='utf-8')); 칸 = f'{여기}/자막/그림/빈칸.png'; 목록 = []; now = 0.0
+# 기준영상은 16:9 여야 얼굴 원 좌표가 맞는다(4K 가 아니면 4K 로 키운다).
+_r = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', 대표], capture_output=True, text=True, check=True).stdout.strip().split(',')
+if abs(int(_r[0]) / int(_r[1]) - 16 / 9) > .01: raise SystemExit(f'기준영상이 16:9 가 아님({_r[0]}x{_r[1]}) — 얼굴 원을 얹은 가로 영상이 필요')
+자막있음 = os.path.exists(f'{여기}/자막/줄.json')  # 자막은 대표가 맡길 때만. 없으면 자막 없이 합친다.
+줄 = json.load(open(f'{여기}/자막/줄.json', encoding='utf-8')) if 자막있음 else []; 칸 = f'{여기}/자막/그림/빈칸.png'; 목록 = []; now = 0.0
 for i, c in enumerate(줄):
     a0, b0 = c['t0'], min(c['t1'], 총)
     if b0 <= a0: continue
@@ -36,12 +40,13 @@ for i, c in enumerate(줄):
     목록 += [f"file '{여기}/자막/그림/{i:04d}.png'", f'duration {b0 - a0:.3f}']; now = b0
 if now < 총: 목록 += [f"file '{칸}'", f'duration {총 - now:.3f}']
 목록.append(f"file '{칸}'")
-open(f'{여기}/자막/_자막목록.txt', 'w', encoding='utf-8').write(chr(10).join(목록))
-필터 = (f"[1:v]format=rgba[얼원];[2:v]format=gray[마];[얼원][마]alphamerge[얼];"
-        f"[0:v]fps=60,format=rgba[뒷];[뒷][얼]overlay=0:0:shortest=1[합];[4:v]fps=60,format=rgba[자];[합][자]overlay=0:{자막y}:eof_action=pass,format=yuv420p[out]")
-subprocess.run(['ffmpeg', '-v', 'error', '-stats', '-y', '-i', 뒤, '-i', 대표, '-loop', '1', '-i', f'{여기}/얼굴마스크4k.png', '-i', 소리, '-f', 'concat', '-safe', '0', '-i', f'{여기}/자막/_자막목록.txt',
+if 자막있음: open(f'{여기}/자막/_자막목록.txt', 'w', encoding='utf-8').write(chr(10).join(목록))
+필터 = (f"[1:v]scale=3840:2160:flags=lanczos,format=rgba[얼원];[2:v]format=gray[마];[얼원][마]alphamerge[얼];"
+        f"[0:v]fps=60,format=rgba[뒷];[뒷][얼]overlay=0:0:shortest=1" + (f"[합];[4:v]fps=60,format=rgba[자];[합][자]overlay=0:{자막y}:eof_action=pass,format=yuv420p[out]" if 자막있음 else ",format=yuv420p[out]"))
+자막입력 = ['-f', 'concat', '-safe', '0', '-i', f'{여기}/자막/_자막목록.txt'] if 자막있음 else []
+subprocess.run(['ffmpeg', '-v', 'error', '-stats', '-y', '-i', 뒤, '-i', 대표, '-loop', '1', '-i', f'{여기}/얼굴마스크4k.png', '-i', 소리, *자막입력,
                 '-filter_complex', 필터, '-map', '[out]', '-map', '3:a',
-                '-c:v', 'hevc_nvenc', '-preset', 'p6', '-tune', 'hq', '-rc', 'vbr', '-cq', '18', '-b:v', '0', '-maxrate', '70M', '-bufsize', '140M', '-tag:v', 'hvc1',
+                *인코더.최종옵션(),
                 '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
                 '-c:a', 'aac', '-b:a', '320k', '-ar', '48000', '-movflags', '+faststart', '-t', str(총), 결과], check=True)
 print('끝', 결과)

@@ -20,5 +20,8 @@ for a, b in 버림:
     소리 = ks[(db[ks] > -42) & ~의도[ks]]
     if len(소리) >= 2:
         줄.append(f'{a:7.2f}~{b:7.2f} 버린 곳 안 말소리 {len(소리) / 100:.2f}초 ({소리[0] / 100:.2f}~{소리[-1] / 100:.2f}, 최대 {db[소리].max():.0f}dB)')
-open(J('무음검사.txt'), 'w', encoding='utf-8').write('\n'.join(줄))
-print('\n'.join(줄)); print('실패', len(줄), '/ 버린 곳', len(버림))
+# 숨으로 판정해 버린 곳은 위 검사에서 빠진다(끝말이 숨으로 잘못 판정돼도 못 잡음) → 따로 적어 잘림전수검사 결과와 맞대어 본다.
+버린숨 = [(a, b) for a, b, *_ in 숨 if any(x <= a and b <= y for x, y in 버림)]
+숨줄 = [f'{a:7.2f}~{b:7.2f} 숨으로 지움 · 크기 최대 {db[int(a * 100):int(b * 100)].max():.0f}dB' for a, b in 버린숨]
+open(J('무음검사.txt'), 'w', encoding='utf-8').write('\n'.join(줄 + ['', '[숨으로 지운 곳 — 잘림전수검사로 확인]'] + 숨줄))
+print('\n'.join(줄)); print('실패', len(줄), '/ 버린 곳', len(버림), '· 숨으로 지운 곳', len(숨줄), '(잘림전수검사로 확인)')

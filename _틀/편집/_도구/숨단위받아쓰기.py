@@ -9,8 +9,9 @@ sys.path.insert(0, os.path.join(_p, '_공용'))
 from _귀 import 귀열기
 여기 = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 J = lambda n: os.path.join(여기, n)
-구간 = json.load(open(J('살린구간.json'), encoding='utf-8'))['프레임구간']
 x, sr = sf.read(J('a16k.wav'), dtype='float32')
+# 살린구간.json 은 옛 공정의 결과물이다. 없으면(컷 전 첫 받아쓰기) 녹화 전체를 본다.
+구간 = json.load(open(J('살린구간.json'), encoding='utf-8'))['프레임구간'] if os.path.exists(J('살린구간.json')) else [[0, int(len(x) / sr * 30)]]
 칸 = int(sr * 0.01)
 db = 20 * np.log10(np.sqrt(np.convolve(x**2, np.ones(칸 * 2) / (칸 * 2), mode='same')[::칸] + 1e-12))
 조용선 = db[int(0.0):].copy()

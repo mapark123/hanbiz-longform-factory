@@ -82,7 +82,8 @@ for s in 배치:
             return float(np.min(np.clip(h[m] / xe[m], 0, 1))) if m.any() else 1.0
         best, bs = a0, 점수(a0)
         if bs < .7:
-            for d in range(-15, 16):
+            옮김폭 = int(설.get('효과음옮김_최대', .15) * 100)  # 뒷 장면(A) 0.15초 · 풀화면(B)은 자료가 낱말에 딱 붙어 0.04초
+            for d in range(-옮김폭, 옮김폭 + 1):
                 aa = a0 + int(d * .01 * SR); sc = 점수(aa) - abs(d) * .004
                 if sc > bs + .05: best, bs = aa, sc
         if best != a0: 옮김.append(f'{e["t"]:7.2f} {e["이름"]} → {(best - a0) / SR:+.2f}초')
